@@ -10,6 +10,8 @@ LIBS		= -led -lm -L $(LIB)
 
 all: libed app
 
+new: clean all run
+
 libed: \
 	$(OBJ)/raizes.o
 	ar -rcs $(LIB)/libed.a $(OBJ)/*.o

@@ -41,7 +41,7 @@ int main(){
 }
 
 double funcao(double n){
-    return (pow(M_E,-pow(n,2))-cos(n));
+    return (exp(-pow(n,2))-cos(n));
 }
 
 double funcaoS(double n, double n2){

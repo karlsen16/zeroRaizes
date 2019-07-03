@@ -25,7 +25,7 @@ int main(){
 }
 
 double funcao(double n){
-    return (pow(n,2)-137);
+    return (sqrt(n)-5*exp(-n));
 }
 
 Intervalo preencheIe(){

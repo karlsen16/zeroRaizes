@@ -1,15 +1,13 @@
 
-APPS 		= ./apps
-BIN 		= ./bin
-FLAGS 	= -Wall -std=gnu99 -lm
+FLAGS 	= -Wall -std=gnu99
 
-all: $(BIN)/main
-
-$(BIN)/%: $(APPS)/%.c
-	gcc $(FLAGS) $< -o $@
+all:
+	gcc $(FLAGS) main.c -lm -o main
+	
+new: clean all run
 
 run:
-	$(BIN)/main
+	./main
 
 clean:
-	rm $(BIN)/*
+	rm main

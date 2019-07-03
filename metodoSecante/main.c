@@ -2,132 +2,158 @@
 #include <stdlib.h>
 #include <math.h>
 
-typedef struct intervalo{
-    double a;           //limite inferior do intervalo
-    double b;           //limite superior do intervalo
-    double erro;
-    double x0;          //flag, x0 e x1 sao pra controle de uso customizado dos valores iniciais
-    double x1;
-    int it_Max;
-    int valo;           //intervalo que cont�m uma ra�z isolado a ser usado
-    int r;              //indica que j� est� fazendo repeticoes e pula os preenchimentos iniciais
-    int flag;
+typedef struct intervalo {
+  double a;
+  double b;
+  double passo;
 }Intervalo;
 
-double funcao(double n);
-double funcaoS(double n, double n2);
-Intervalo preencheIe();
-void pontoInicial(Intervalo *ie);
-void atualizaIntervalo(Intervalo *ie, double a, double b);
-void isolarRaiz(Intervalo *ie);
-void iteracoes_Max(Intervalo *ie);
-void imprimir(Intervalo *ie, double n);
-double secante(Intervalo *ie, double n, double n2);
+typedef struct entrada {
+  double erro;
+  int itMax;
+  int intervalo;
+  struct intervalo I;
+}Entrada;
 
-int main(){
-    int retry = 1;
-    Intervalo ie = preencheIe();
-    pontoInicial(&ie);
-    while(retry == 1){
-        printf("\n\nDeseja calcular novamente com um novo it_MAX?\n\n### 0: Nao, terminar programa\n### 1: Sim, irei informar o novo it_MAX\n\n");
-        scanf("%d", &retry);
-        if(retry == 1){
-            iteracoes_Max(&ie);
-            ie.r = 1;                   //indica que já está fazendo repeticoes e pula os preenchimentos iniciais
-            pontoInicial(&ie);
+typedef struct printer {
+  int casas;
+  int parteDecimal;
+}Printer;
+
+double funcao (double x);
+double funcaoS (double x, double x0);
+void atualizaIntervalo (Intervalo *I, double a, double b);
+Entrada preencher ();
+void pontoInicial (Entrada *E);
+void isolarRaiz (Entrada *E);
+Printer arrumaPrint (double a, double passo);
+double secante (Entrada *E, double x, double x0);
+
+int main () {
+  Entrada E = preencher();
+  pontoInicial(&E);
+  return 0;
+}
+
+double funcao (double x) {
+  return (exp(-pow(x,2))-cos(x));
+}
+
+double funcaoS (double x, double x0) {
+  if((funcao(x)-funcao(x0)) == 0)
+    return x;
+  else
+    return ((x0*funcao(x)-x*funcao(x0))/(funcao(x)-funcao(x0)));
+}
+
+void atualizaIntervalo (Intervalo *I, double a, double b) {
+  I->a = a;
+  I->b = b;
+}
+
+Entrada preencher () {
+  Entrada E;
+  int r;
+  double p;
+  printf("Digite o intervalo inicial:\n");
+  scanf("%lf %lf", &E.I.a, &E.I.b);
+  printf("\nDigite o erro:\n");
+  scanf("%d", &r);
+  E.erro = pow(10, -r);
+  printf("\nDigite o passo:\n");
+  scanf("%lf", &p);
+  E.I.passo = p;
+  E.intervalo = -1;
+  isolarRaiz(&E);
+  printf("\nInforme ITMAX:\n");
+  scanf("%d", &E.itMax);
+  return E;
+}
+
+void pontoInicial (Entrada *E) {
+  double x, x1;
+  int flag;
+  printf("\nDeseja escolher os x(s) iniciais?\n\n### 0: Nao, deixar o programar escolher os mais adequados\n### 1: Sim, digitarei o x0 e x1\n\n");
+  scanf("%d", &flag);
+  if(flag != 0) {
+    printf("\nDigite x0 e x1:\n");
+    scanf("%lf %lf", &x, &x1);
+  }
+  if(flag == 0)
+    x = secante(E, E->I.b, E->I.a);
+  else
+    x = secante(E, x1, x);
+  printf("\n\nDigite a quantidade de casas decimais na resposta:\n");
+  scanf("%d", &flag);
+  Printer A = arrumaPrint(x, pow(10, -flag));
+  printf("\n\nMetodo da Secante: %+*.*lf\n\n", A.casas, A.parteDecimal, x);
+}
+
+void isolarRaiz (Entrada *E) {
+  double i;
+  int cont = 0;
+  for(i = E->I.a; i < E->I.b; i+=E->I.passo)
+    if(funcao(i)*funcao(i+E->I.passo) <= 0) {
+      cont++;
+      if(E->intervalo == -1 || E->intervalo == cont) {
+        Printer A = arrumaPrint(i, E->I.passo);
+        Printer B = arrumaPrint(i+E->I.passo, E->I.passo);
+        if(E->intervalo == -1) {
+          if(funcao(i)*funcao(i+E->I.passo) < 0)
+            printf("\n%2d# Raiz em: [%+*.*lf, %+*.*lf]", cont, A.casas, A.parteDecimal, i, B.casas, B.parteDecimal, i+E->I.passo);
+          else
+            if(funcao(i+E->I.passo) == 0)
+              printf("\n%2d# Encontrada uma raiz em x = %+*.*lf!", cont, B.casas, B.parteDecimal, i+E->I.passo);
+            else
+              printf("\n%2d# Encontrada uma raiz em x = %+*.*lf!", cont, A.casas, A.parteDecimal, i);
         }
-    }
-    return 0;
-}
-
-double funcao(double n){
-    return (exp(-pow(n,2))-cos(n));
-}
-
-double funcaoS(double n, double n2){
-    if((funcao(n)-funcao(n2)) == 0)
-        return n;
-    else
-        return ((n2*funcao(n)-n*funcao(n2))/(funcao(n)-funcao(n2)));
-}
-
-Intervalo preencheIe(){
-    Intervalo ie;
-    int r;
-
-    printf("Digite o intervalo inicial:\n");
-    scanf("%lf %lf", &ie.a, &ie.b);
-    printf("\nDigite o erro:\n");
-    scanf("%d", &r);
-    ie.erro = pow(10, -r);
-    ie.valo = -1;
-    isolarRaiz(&ie);
-    printf("\n\nDigite o intervalo isolado escolhido:\n");
-    scanf("%d", &ie.valo);
-    isolarRaiz(&ie);
-    ie.r = 0;
-    iteracoes_Max(&ie);
-    return ie;
-}
-
-void pontoInicial(Intervalo *ie){
-    double n;
-    if(ie->r == 0){
-      printf("\nDeseja escolher os x(s) iniciais?\n\n### 0: Nao, deixar o programar escolher os mais adequados\n### 2: Sim, digitarei o x0 e x1\n\n");
-      scanf("%d", &ie->flag);
-      if(ie->flag != 0){
-        printf("\nDigite x0 e x1:\n");
-        scanf("%lf %lf", &ie->x0, &ie->x1);
+        else if(E->intervalo == cont) {
+          atualizaIntervalo(&(E->I), i, i+E->I.passo);
+          printf("\n### O intervalo escolhido foi: [%+*.*lf, %+*.*lf]###\n",A.casas, A.parteDecimal, i, B.casas, B.parteDecimal, i+E->I.passo);
+          break;
+        }
       }
+      if(funcao(i)*funcao(i+E->I.passo) == 0)
+        i+=E->I.passo;
     }
-    if(ie->flag == 0)
-      n = secante(ie, ie->b, ie->a);
+  if(E->intervalo == -1 && cont != 0) {
+    printf("\n\nDigite o intervalo isolado escolhido:\n");
+    scanf("%d", &E->intervalo);
+    isolarRaiz(E);
+  }
+}
+
+Printer arrumaPrint (double a, double passo) {
+  Printer novo;
+  novo.casas = 0;
+  novo.parteDecimal = 0;
+  a = fabs(a);
+  int inteiro;
+  inteiro = (int) a;
+  while(inteiro > 0) {
+    inteiro /= 10;
+    novo.casas++;
+  }
+  if(novo.casas == 0)
+    novo.casas++;
+  do {
+    novo.parteDecimal++;
+    passo *= 10;
+    inteiro = (int) passo;
+  }while(fabs(passo-inteiro) != 0);
+  novo.casas += novo.parteDecimal+1;
+  return novo;
+}
+
+double secante (Entrada *E, double x, double x0) {
+  if(E->itMax >= 1) {
+    double p = funcaoS(x, x0);
+    E->itMax--;
+    printf("\n |p(x:n+1)-p(x:n)|: %2.10lf", fabs(p-x));
+    if(fabs(p-x) > E->erro)
+      x = secante(E, p, x);
     else
-      n = secante(ie, ie->x1, ie->x0);
-    imprimir(ie, n);
-}
-
-void atualizaIntervalo(Intervalo *ie, double a, double b){
-    ie->a = a;
-    ie->b = b;
-}
-
-void iteracoes_Max(Intervalo *ie){
-    printf("\nInforme ITMAX:\n");
-    scanf("%d", &ie->it_Max);
-}
-
-void imprimir(Intervalo *ie, double n){
-    printf("\n\nMetodo da Secante: %2.10lf\n\n", n);
-}
-
-void isolarRaiz(Intervalo *ie){
-    double p = 0.01, i;
-    int cont = 0;
-
-    for(i = ie->a; i < ie->b; i+=p)
-        if(ceil(funcao(i)*funcao(i+p)) == 0){
-            cont++;
-            if(ie->valo == -1)
-                printf("\n%2d# Raiz em: [%2.lf,%2.lf]", cont, floor(i), ceil(i+p));
-
-            if(ie->valo != -1 && cont == ie->valo){
-                atualizaIntervalo(ie, floor(i), ceil(i+p));
-                printf("\n### O intervalo escolhido foi: [%2.lf,%2.lf]###\n", ie->a, ie->b);
-                break;
-            }
-        }
-}
-
-double secante(Intervalo *ie, double n, double n2){
-    if(ie->it_Max >= 1){
-        double p = funcaoS(n, n2);
-        ie->it_Max--;
-        printf("\n |p(x~n+1)- p(x~n)|: %2.10lf\n |p(x~n+1)|:         %2.10lf\n", fabs(p-n), fabs(funcao(p)));
-        if((fabs(p-n) > ie->erro) && (fabs(funcao(n)) > ie->erro))
-            n = secante(ie, p, n);
-        else
-            n = p;
-    }
-    return n;
+      x = p;
+  }
+  return x;
 }

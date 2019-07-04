@@ -25,7 +25,7 @@ int main () {
 }
 
 double funcao (double x) {
-  return (sqrt(x)-5*exp(-x));
+  return (exp(x)-2*x-sin(x));
 }
 
 Intervalo preencher () {

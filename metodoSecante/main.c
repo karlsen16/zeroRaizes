@@ -36,7 +36,7 @@ int main () {
 }
 
 double funcao (double x) {
-  return (exp(-pow(x,2))-cos(x));
+  return (pow(x,2)*log(x)+exp(x)-1.65);
 }
 
 double funcaoS (double x, double x0) {

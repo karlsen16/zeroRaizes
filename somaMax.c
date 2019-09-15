@@ -14,7 +14,7 @@ typedef struct {
 
 MSS bruteForce (int *A, int low, int high) {
   int i, j, temp;
-  MSS ret = {low, high, A[low]};
+  MSS ret = {high, high, 0};
 
   for(i = low; i < high; i++) {
     temp = 0;

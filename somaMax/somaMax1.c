@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
-#define CROSSOVER 20
+#define CROSSOVER 25
 #define Q 3
 #define P 5
 
@@ -14,7 +14,7 @@ typedef struct {
 
 MSS bruteForce (int *A, int low, int high) {
   int i, j, temp;
-  MSS ret = {high, high, 0};
+  MSS ret = {low, high, A[low]};
 
   for(i = low; i < high; i++) {
     temp = 0;
@@ -115,7 +115,7 @@ void imprime (int *A, int left, int right, int t) {
 
 int main () {
   srand(time(NULL));
-  int i, t, n = 30;
+  int i, t, n = 5;
   scanf("%d", &t);
   int A[t];
   for(i = 0; i < t; i++)
